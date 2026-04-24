@@ -20,7 +20,7 @@ const ActivitySchema = new Schema<IActivity>(
       ref: 'User',
       required: true,
     },
-    // Action type: "Lead Created", "Status Updated", "Lead Assigned", etc.
+    // Actions are "Lead Created", "Status Updated", "Lead Assigned", etc.
     action: {
       type: String,
       required: true,
