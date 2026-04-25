@@ -31,63 +31,44 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
+    <div className="auth-container">
+      <div className="auth-box">
+        <h1>🏠 Property CRM</h1>
+        <p>Sign in to your account</p>
 
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">🏠 Property CRM</h1>
-          <p className="text-gray-500 mt-1">Sign in to your account</p>
-        </div>
+        {error && <div className="error-box">{error}</div>}
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg mb-4 text-sm">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address
-            </label>
+        <form onSubmit={handleLogin}>
+          <div className="form-group">
+            <label>Email Address</label>
             <input
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="you@example.com"
               required
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
+          <div className="form-group">
+            <label>Password</label>
             <input
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="••••••••"
               required
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition font-medium"
-          >
+          <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-500 mt-4">
+        <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '14px', color: '#6b7280' }}>
           No account?{' '}
-          <Link href="/signup" className="text-blue-600 hover:underline">
-            Create one
-          </Link>
+          <Link href="/signup" style={{ color: '#2563eb' }}>Create one</Link>
         </p>
       </div>
     </div>
