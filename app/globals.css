@@ -277,3 +277,35 @@ body {
 .stat-card.red    { border-left-color: #ef4444; }
 .stat-card.green  { border-left-color: #16a34a; }
 .stat-card.purple { border-left-color: #7c3aed; }
+
+/* Dashboard layout */
+.dashboard-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Overdue highlight */
+.overdue {
+  border-left: 4px solid #ef4444 !important;
+}
+
+/* Modal overlay */
+.modal-overlay {
+  position:        fixed;
+  top:             0;
+  left:            0;
+  right:           0;
+  bottom:          0;
+  background:      rgba(0, 0, 0, 0.5);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  z-index:         1000;
+}
+
+/* Sticky panel */
+.sticky-panel {
+  position: sticky;
+  top:      24px;
+  height:   fit-content;
+}
