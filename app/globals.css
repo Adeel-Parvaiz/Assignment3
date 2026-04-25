@@ -272,3 +272,8 @@ body {
   .sidebar { display: none; }
   .main-content { margin-left: 0; }
 }
+/* Stat card colors */
+.stat-card.blue   { border-left-color: #2563eb; }
+.stat-card.red    { border-left-color: #ef4444; }
+.stat-card.green  { border-left-color: #16a34a; }
+.stat-card.purple { border-left-color: #7c3aed; }
