@@ -1,19 +1,24 @@
-import Sidebar from '@/components/Sidebar';
+import type { Metadata } from 'next';
+import '../globals.css';
+import { SessionProvider } from '@/components/SessionProvider';
 
-export default function DashboardLayout({
+export const metadata: Metadata = {
+  title:       'Property CRM',
+  description: 'Property Dealer CRM System',
+};
+
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div>
-      {/* Sidebar left side */}
-      <Sidebar />
-
-      {/* Main content right side */}
-      <div className="main-content">
-        {children}
-      </div>
-    </div>
+    <html lang="en">
+      <body>
+        <SessionProvider>
+          {children}
+        </SessionProvider>
+      </body>
+    </html>
   );
 }
