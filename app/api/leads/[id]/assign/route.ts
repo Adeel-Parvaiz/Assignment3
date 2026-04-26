@@ -4,19 +4,20 @@ import { requireAdmin } from '@/lib/auth';
 import Lead from '@/models/Lead';
 import Activity from '@/models/Activity';
 import User from '@/models/User';
+import { sendEmail } from '@/lib/mailer';
+import { assignmentTemplate } from '@/lib/emailTemplates';
 
 // PATCH assign lead to an agent
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> } // ✅ FIX
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { user, error } = await requireAdmin();
   if (error) return error;
 
   await connectDB();
 
-  const { id } = await params; // ✅ FIX (important)
-
+  const { id } = await params;
   const { agentId } = await req.json();
 
   if (!agentId) {
@@ -30,9 +31,9 @@ export async function PATCH(
   }
 
   const lead = await Lead.findByIdAndUpdate(
-    id, // ✅ use awaited id
+    id,
     { assignedTo: agentId, status: 'Contacted' },
-    { returnDocument: 'after' } // ✅ replace new:true
+    { returnDocument: 'after' }
   ).populate('assignedTo', 'name email');
 
   if (!lead) {
@@ -41,11 +42,23 @@ export async function PATCH(
 
   // Log assignment activity
   await Activity.create({
-    lead: lead._id,
+    lead:        lead._id,
     performedBy: user!.id,
-    action: 'Lead Assigned',
-    details: `Lead assigned to agent: ${agent.name}`,
+    action:      'Lead Assigned',
+    details:     `Lead assigned to agent: ${agent.name}`,
   });
+
+  // Send email to agent
+  try {
+    await sendEmail({
+      to:      agent.email,
+      subject: `Lead Assigned to You: ${lead.name}`,
+      html:    assignmentTemplate(agent.name, lead.name),
+    });
+    console.log('Assignment email sent to:', agent.email);
+  } catch (emailError: any) {
+    console.error('Email error:', emailError.message);
+  }
 
   return NextResponse.json(lead);
 }

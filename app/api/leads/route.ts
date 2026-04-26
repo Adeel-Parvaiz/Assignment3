@@ -3,9 +3,11 @@ import { connectDB } from '@/lib/mongodb';
 import { requireAuth, requireAdmin } from '@/lib/auth';
 import Lead from '@/models/Lead';
 import Activity from '@/models/Activity';
+import { sendEmail } from '@/lib/mailer';
+import { newLeadTemplate } from '@/lib/emailTemplates';
 
-// GET all leads (admin sees all, agent sees only assigned)
-export async function GET(req: NextRequest) {
+// GET all leads — admin sees all, agent sees only assigned
+export async function GET() {
   const { user, error } = await requireAuth();
   if (error) return error;
 
@@ -18,7 +20,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(leads);
 }
 
-// POST create new lead (admin only)
+// POST create new lead — admin only
 export async function POST(req: NextRequest) {
   const { user, error } = await requireAdmin();
   if (error) return error;
@@ -34,15 +36,30 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Create lead in database
   const lead = await Lead.create(body);
+  console.log('Lead created:', lead.name, '| Priority:', lead.priority);
 
-  // Log activity
+  // Record activity in audit log
   await Activity.create({
     lead:        lead._id,
     performedBy: user!.id,
     action:      'Lead Created',
     details:     `New lead "${lead.name}" created with ${lead.priority} priority`,
   });
+
+  // Send email notification to admin
+  console.log('Sending email to:', process.env.ADMIN_EMAIL);
+  try {
+    await sendEmail({
+      to:      process.env.ADMIN_EMAIL!,
+      subject: `New Lead Created: ${lead.name}`,
+      html:    newLeadTemplate(lead.name, lead.priority, lead.budget),
+    });
+    console.log('Email sent successfully to admin!');
+  } catch (emailError: any) {
+    console.error('Email sending failed:', emailError.message);
+  }
 
   return NextResponse.json(lead, { status: 201 });
 }
