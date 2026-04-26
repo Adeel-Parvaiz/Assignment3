@@ -1,18 +1,28 @@
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import Sidebar from '@/components/Sidebar';
 
-export default async function HomePage() {
-  const session = await getServerSession(authOptions);
+// No html or body tags here — only wrapper div
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
 
-  // Redirect based on role
-  if (!session) {
-    redirect('/login');
-  }
+      {/* Sidebar left side */}
+      <Sidebar />
 
-  if ((session.user as any).role === 'admin') {
-    redirect('/admin');
-  }
+      {/* Main content right side */}
+      <div style={{
+        marginLeft: '240px',
+        padding:    '24px',
+        flex:       '1',
+        background: '#f3f4f6',
+        minHeight:  '100vh',
+      }}>
+        {children}
+      </div>
 
-  redirect('/agent');
+    </div>
+  );
 }

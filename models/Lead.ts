@@ -73,20 +73,19 @@ const LeadSchema = new Schema<ILead>(
 );
 
 // calculate priority and score based on budget before saving
-LeadSchema.pre('save', function (next) {
+LeadSchema.pre('save', async function () {
   if (this.isModified('budget') || this.isNew) {
     if (this.budget > 20_000_000) {
       this.priority = 'High';
-      this.score = 100;
+      this.score    = 100;
     } else if (this.budget >= 10_000_000) {
       this.priority = 'Medium';
-      this.score = 60;
+      this.score    = 60;
     } else {
       this.priority = 'Low';
-      this.score = 30;
+      this.score    = 30;
     }
   }
-  next();
 });
 
 export default mongoose.models.Lead || mongoose.model<ILead>('Lead', LeadSchema);

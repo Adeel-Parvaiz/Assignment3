@@ -105,16 +105,22 @@ export default function LeadCard({ lead, onEdit, onDelete, onAssign, showAdmin =
 
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
 
-        {lead.phone && (
-          
-            href={whatsappLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ background: '#16a34a', color: 'white', padding: '6px 14px', borderRadius: '6px', fontSize: '13px', textDecoration: 'none' }}
-          >
-            💬 WhatsApp
-          </a>
-        )}
+       {lead.phone && (
+  <button
+    onClick={() => window.open(whatsappLink, '_blank')}
+    style={{
+      background:   '#16a34a',
+      color:        'white',
+      border:       'none',
+      padding:      '6px 14px',
+      borderRadius: '6px',
+      fontSize:     '13px',
+      cursor:       'pointer',
+    }}
+  >
+    💬 WhatsApp
+  </button>
+)}
 
         {onEdit && (
           <button

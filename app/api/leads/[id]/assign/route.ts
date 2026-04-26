@@ -6,11 +6,16 @@ import Activity from '@/models/Activity';
 import User from '@/models/User';
 
 // PATCH assign lead to an agent
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> } // ✅ FIX
+) {
   const { user, error } = await requireAdmin();
   if (error) return error;
 
   await connectDB();
+
+  const { id } = await params; // ✅ FIX (important)
 
   const { agentId } = await req.json();
 
@@ -25,19 +30,21 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   const lead = await Lead.findByIdAndUpdate(
-    params.id,
+    id, // ✅ use awaited id
     { assignedTo: agentId, status: 'Contacted' },
-    { new: true }
+    { returnDocument: 'after' } // ✅ replace new:true
   ).populate('assignedTo', 'name email');
 
-  if (!lead) return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
+  if (!lead) {
+    return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
+  }
 
   // Log assignment activity
   await Activity.create({
-    lead:        lead._id,
+    lead: lead._id,
     performedBy: user!.id,
-    action:      'Lead Assigned',
-    details:     `Lead assigned to agent: ${agent.name}`,
+    action: 'Lead Assigned',
+    details: `Lead assigned to agent: ${agent.name}`,
   });
 
   return NextResponse.json(lead);

@@ -1,15 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import {
-  PieChart, Pie, Cell, BarChart, Bar,
-  XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
-} from 'recharts';
-
-const PRIORITY_COLORS: Record<string, string> = {
-  High:   '#ef4444',
-  Medium: '#f97316',
-  Low:    '#22c55e',
-};
 
 export default function AdminDashboard() {
   const [stats, setStats]     = useState<any>(null);
@@ -19,19 +9,11 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetch('/api/analytics')
       .then(r => {
-        // Check if response is ok
         if (!r.ok) throw new Error(`HTTP error: ${r.status}`);
         return r.json();
       })
-      .then(data => {
-        setStats(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Analytics fetch error:', err);
-        setError(err.message);
-        setLoading(false);
-      });
+      .then(data => { setStats(data); setLoading(false); })
+      .catch(err => { setError(err.message); setLoading(false); });
   }, []);
 
   if (loading) return (
@@ -42,24 +24,13 @@ export default function AdminDashboard() {
 
   if (error) return (
     <div style={{ padding: '24px' }}>
-      <div className="error-box">
-        Error loading dashboard: {error}
-      </div>
+      <div className="error-box">Error: {error}</div>
     </div>
   );
 
-  if (!stats) return (
-    <div style={{ padding: '24px', color: '#6b7280' }}>
-      No data found
-    </div>
-  );
+  if (!stats) return null;
 
-  const priorityChartData = Object.entries(stats.priorityStats).map(
-    ([name, value]) => ({ name, value })
-  );
-  const statusChartData = Object.entries(stats.statusStats).map(
-    ([name, value]) => ({ name, count: value })
-  );
+  const total = stats.total || 1;
 
   return (
     <div className="main-content">
@@ -75,56 +46,76 @@ export default function AdminDashboard() {
         </div>
         <div className="stat-card red">
           <p>High Priority</p>
-          <p style={{ color: '#ef4444' }}>{stats.priorityStats.High}</p>
+          <p style={{ color: '#ef4444' }}>{stats.priorityStats?.High || 0}</p>
         </div>
         <div className="stat-card green">
           <p>Closed Leads</p>
-          <p style={{ color: '#16a34a' }}>{stats.statusStats.Closed}</p>
+          <p style={{ color: '#16a34a' }}>{stats.statusStats?.Closed || 0}</p>
         </div>
         <div className="stat-card purple">
           <p>Active Agents</p>
-          <p style={{ color: '#7c3aed' }}>{stats.agentPerformance.length}</p>
+          <p style={{ color: '#7c3aed' }}>{stats.agentPerformance?.length || 0}</p>
         </div>
       </div>
 
-      {/* Charts */}
+      {/* Priority Distribution — CSS Bars */}
       <div className="grid-2" style={{ marginBottom: '24px' }}>
         <div className="card">
           <h2 style={{ fontWeight: '600', marginBottom: '16px' }}>Priority Distribution</h2>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie
-                data={priorityChartData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%" cy="50%"
-                outerRadius={80}
-                label
-              >
-                {priorityChartData.map(entry => (
-                  <Cell key={entry.name} fill={PRIORITY_COLORS[entry.name] || '#ccc'} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
+
+          {[
+            { label: 'High',   value: stats.priorityStats?.High   || 0, color: '#ef4444' },
+            { label: 'Medium', value: stats.priorityStats?.Medium || 0, color: '#f97316' },
+            { label: 'Low',    value: stats.priorityStats?.Low    || 0, color: '#22c55e' },
+          ].map(item => (
+            <div key={item.label} style={{ marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                <span>{item.label}</span>
+                <span style={{ fontWeight: '600' }}>{item.value}</span>
+              </div>
+              <div style={{ background: '#f3f4f6', borderRadius: '4px', height: '8px' }}>
+                <div style={{
+                  background:    item.color,
+                  height:        '8px',
+                  borderRadius:  '4px',
+                  width:         `${total > 0 ? (item.value / total) * 100 : 0}%`,
+                  transition:    'width 0.5s ease',
+                }} />
+              </div>
+            </div>
+          ))}
         </div>
 
+        {/* Status Distribution — CSS Bars */}
         <div className="card">
           <h2 style={{ fontWeight: '600', marginBottom: '16px' }}>Leads by Status</h2>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={statusChartData}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="#2563eb" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+
+          {[
+            { label: 'New',         value: stats.statusStats?.New           || 0, color: '#2563eb' },
+            { label: 'Contacted',   value: stats.statusStats?.Contacted     || 0, color: '#7c3aed' },
+            { label: 'In Progress', value: stats.statusStats?.['In Progress'] || 0, color: '#f97316' },
+            { label: 'Closed',      value: stats.statusStats?.Closed        || 0, color: '#22c55e' },
+          ].map(item => (
+            <div key={item.label} style={{ marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                <span>{item.label}</span>
+                <span style={{ fontWeight: '600' }}>{item.value}</span>
+              </div>
+              <div style={{ background: '#f3f4f6', borderRadius: '4px', height: '8px' }}>
+                <div style={{
+                  background:   item.color,
+                  height:       '8px',
+                  borderRadius: '4px',
+                  width:        `${total > 0 ? (item.value / total) * 100 : 0}%`,
+                  transition:   'width 0.5s ease',
+                }} />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Agent Performance */}
+      {/* Agent Performance Table */}
       <div className="card">
         <h2 style={{ fontWeight: '600', marginBottom: '16px' }}>Agent Performance</h2>
         <table className="table">
@@ -132,20 +123,31 @@ export default function AdminDashboard() {
             <tr>
               <th>Agent Name</th>
               <th>Leads Assigned</th>
+              <th>Performance</th>
             </tr>
           </thead>
           <tbody>
-            {stats.agentPerformance.length === 0 ? (
+            {!stats.agentPerformance?.length ? (
               <tr>
-                <td colSpan={2} style={{ textAlign: 'center', color: '#9ca3af', padding: '20px' }}>
+                <td colSpan={3} style={{ textAlign: 'center', color: '#9ca3af', padding: '20px' }}>
                   No agents assigned yet
                 </td>
               </tr>
             ) : (
               stats.agentPerformance.map((agent: any) => (
                 <tr key={agent.name}>
-                  <td>{agent.name}</td>
+                  <td style={{ fontWeight: '500' }}>{agent.name}</td>
                   <td style={{ fontWeight: '600', color: '#2563eb' }}>{agent.count}</td>
+                  <td>
+                    <div style={{ background: '#f3f4f6', borderRadius: '4px', height: '8px', width: '100px' }}>
+                      <div style={{
+                        background:   '#2563eb',
+                        height:       '8px',
+                        borderRadius: '4px',
+                        width:        `${(agent.count / total) * 100}%`,
+                      }} />
+                    </div>
+                  </td>
                 </tr>
               ))
             )}
