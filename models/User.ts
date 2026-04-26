@@ -1,50 +1,49 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
+
 export interface IUser extends Document {
-  email: string;
-  password: string;
-  name: string;
-  role: 'admin' | 'agent' | 'client';
+  email:     string;
+  password:  string;
+  name:      string;
+  role:      'admin' | 'agent';
   createdAt: Date;
 }
 
-const UserSchema: Schema = new Schema<IUser>({
+const UserSchema = new Schema<IUser>(
+  {
     name: {
-      type: String,
+      type:     String,
       required: [true, 'Name is required'],
-      trim: true,
+      trim:     true,
     },
     email: {
-      type: String,
-      required: [true, 'Email is required'],
-        unique: true,
-        lowercase: true,
-        trim: true,
+      type:      String,
+      required:  [true, 'Email is required'],
+      unique:    true,
+      lowercase: true,
+      trim:      true,
     },
     password: {
-        type: String,
-        required: [true, 'Password is required'],
-        minlength: [6, 'Password must be at least 6 characters long'],
+      type:      String,
+      required:  [true, 'Password is required'],
+      minlength: [6, 'Password must be at least 6 characters long'],
     },
     role: {
-        type: String,
-        enum: ['admin', 'agent'],
-        default: 'agent'
+      type:    String,
+      enum:    ['admin', 'agent'],
+      default: 'agent',
     },
-},
-// automatically add createdAt and updatedAt fields
-    {
-    timestamps: true,
-    }
+  },
+  { timestamps: true }
 );
 
-UserSchema.pre('save', async function (next) {
-    // if password is not save, no need to hash
-    if (!this.isModified('password')) {
-        return next(); // go to next step and save in DB
-    }
-    this.password = await bcrypt.hash(this.password, 12);
-    next();
+// Hash password before saving to database
+UserSchema.pre('save', async function () {
+  // If password is not modified, skip hashing
+  if (!this.isModified('password')) return;
+  this.password = await bcrypt.hash(this.password as string, 12);
 });
-// return old if already exist, otherwise create new
-export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+
+// Return existing model or create new one
+export default mongoose.models.User ||
+  mongoose.model<IUser>('User', UserSchema);
