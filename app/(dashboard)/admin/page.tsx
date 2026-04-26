@@ -14,19 +14,52 @@ const PRIORITY_COLORS: Record<string, string> = {
 export default function AdminDashboard() {
   const [stats, setStats]     = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState('');
 
   useEffect(() => {
     fetch('/api/analytics')
-      .then(r => r.json())
-      .then(data => { setStats(data); setLoading(false); });
+      .then(r => {
+        // Check if response is ok
+        if (!r.ok) throw new Error(`HTTP error: ${r.status}`);
+        return r.json();
+      })
+      .then(data => {
+        setStats(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Analytics fetch error:', err);
+        setError(err.message);
+        setLoading(false);
+      });
   }, []);
 
-  if (loading) {
-    return <div style={{ padding: '24px', color: '#6b7280' }}>Loading dashboard...</div>;
-  }
+  if (loading) return (
+    <div style={{ padding: '24px', color: '#6b7280' }}>
+      Loading dashboard...
+    </div>
+  );
 
-  const priorityChartData = Object.entries(stats.priorityStats).map(([name, value]) => ({ name, value }));
-  const statusChartData   = Object.entries(stats.statusStats).map(([name, value])   => ({ name, count: value }));
+  if (error) return (
+    <div style={{ padding: '24px' }}>
+      <div className="error-box">
+        Error loading dashboard: {error}
+      </div>
+    </div>
+  );
+
+  if (!stats) return (
+    <div style={{ padding: '24px', color: '#6b7280' }}>
+      No data found
+    </div>
+  );
+
+  const priorityChartData = Object.entries(stats.priorityStats).map(
+    ([name, value]) => ({ name, value })
+  );
+  const statusChartData = Object.entries(stats.statusStats).map(
+    ([name, value]) => ({ name, count: value })
+  );
 
   return (
     <div className="main-content">
@@ -54,30 +87,22 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Charts Row */}
+      {/* Charts */}
       <div className="grid-2" style={{ marginBottom: '24px' }}>
-
-        {/* Priority Pie Chart */}
         <div className="card">
-          <h2 style={{ fontWeight: '600', color: '#374151', marginBottom: '16px' }}>
-            Priority Distribution
-          </h2>
+          <h2 style={{ fontWeight: '600', marginBottom: '16px' }}>Priority Distribution</h2>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
               <Pie
                 data={priorityChartData}
                 dataKey="value"
                 nameKey="name"
-                cx="50%"
-                cy="50%"
+                cx="50%" cy="50%"
                 outerRadius={80}
                 label
               >
                 {priorityChartData.map(entry => (
-                  <Cell
-                    key={entry.name}
-                    fill={PRIORITY_COLORS[entry.name] || '#ccc'}
-                  />
+                  <Cell key={entry.name} fill={PRIORITY_COLORS[entry.name] || '#ccc'} />
                 ))}
               </Pie>
               <Tooltip />
@@ -86,11 +111,8 @@ export default function AdminDashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* Status Bar Chart */}
         <div className="card">
-          <h2 style={{ fontWeight: '600', color: '#374151', marginBottom: '16px' }}>
-            Leads by Status
-          </h2>
+          <h2 style={{ fontWeight: '600', marginBottom: '16px' }}>Leads by Status</h2>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={statusChartData}>
               <XAxis dataKey="name" />
@@ -100,14 +122,11 @@ export default function AdminDashboard() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-
       </div>
 
-      {/* Agent Performance Table */}
+      {/* Agent Performance */}
       <div className="card">
-        <h2 style={{ fontWeight: '600', color: '#374151', marginBottom: '16px' }}>
-          Agent Performance
-        </h2>
+        <h2 style={{ fontWeight: '600', marginBottom: '16px' }}>Agent Performance</h2>
         <table className="table">
           <thead>
             <tr>
@@ -133,7 +152,6 @@ export default function AdminDashboard() {
           </tbody>
         </table>
       </div>
-
     </div>
   );
 }
