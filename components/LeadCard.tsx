@@ -2,19 +2,19 @@
 import { getWhatsAppLink } from '@/lib/whatsapp';
 
 interface Lead {
-  _id:              string;
-  name:             string;
-  email?:           string;
-  phone?:           string;
+  _id:               string;
+  name:              string;
+  email?:            string;
+  phone?:            string;
   propertyInterest?: string;
-  budget:           number;
-  status:           string;
-  priority:         string;
-  score:            number;
-  source:           string;
-  assignedTo?:      { name: string; email: string };
-  followUpDate?:    string;
-  createdAt:        string;
+  budget:            number;
+  status:            string;
+  priority:          string;
+  score:             number;
+  source:            string;
+  assignedTo?:       { name: string; email: string };
+  followUpDate?:     string;
+  createdAt:         string;
 }
 
 interface Props {
@@ -40,7 +40,13 @@ const STATUS_STYLES: Record<string, object> = {
   Closed:        { background: '#dcfce7', color: '#16a34a' },
 };
 
-export default function LeadCard({ lead, onEdit, onDelete, onAssign, showAdmin = false }: Props) {
+export default function LeadCard({
+  lead,
+  onEdit,
+  onDelete,
+  onAssign,
+  showAdmin = false,
+}: Props) {
 
   // Check if follow-up is overdue
   const isOverdue = lead.followUpDate && new Date(lead.followUpDate) < new Date();
@@ -48,8 +54,13 @@ export default function LeadCard({ lead, onEdit, onDelete, onAssign, showAdmin =
   return (
     <div className="card" style={{ marginBottom: '16px' }}>
 
-      {/* Top Row — Name + Priority */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+      {/* Top Row — Name + Priority + Status */}
+      <div style={{
+        display:        'flex',
+        justifyContent: 'space-between',
+        alignItems:     'flex-start',
+        marginBottom:   '12px',
+      }}>
         <div>
           <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#1f2937' }}>
             {lead.name}
@@ -79,8 +90,12 @@ export default function LeadCard({ lead, onEdit, onDelete, onAssign, showAdmin =
       </div>
 
       {/* Lead Details */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
-
+      <div style={{
+        display:               'grid',
+        gridTemplateColumns:   '1fr 1fr',
+        gap:                   '8px',
+        marginBottom:          '12px',
+      }}>
         {lead.email && (
           <p style={{ fontSize: '13px', color: '#6b7280' }}>
             📧 {lead.email}
@@ -110,12 +125,15 @@ export default function LeadCard({ lead, onEdit, onDelete, onAssign, showAdmin =
         )}
 
         {lead.followUpDate && (
-          <p style={{ fontSize: '13px', color: isOverdue ? '#ef4444' : '#6b7280', fontWeight: isOverdue ? '600' : 'normal' }}>
+          <p style={{
+            fontSize:   '13px',
+            color:      isOverdue ? '#ef4444' : '#6b7280',
+            fontWeight: isOverdue ? '600' : 'normal',
+          }}>
             📅 {isOverdue ? '⚠️ Overdue: ' : 'Follow-up: '}
             {new Date(lead.followUpDate).toLocaleDateString()}
           </p>
         )}
-
       </div>
 
       {/* Action Buttons */}
@@ -124,15 +142,15 @@ export default function LeadCard({ lead, onEdit, onDelete, onAssign, showAdmin =
         {/* WhatsApp Button */}
         {lead.phone && (
           
-            href={getWhatsAppLink(lead.phone)}
+            href={getWhatsAppLink(lead.phone as string)}
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              background:   '#16a34a',
-              color:        'white',
-              padding:      '6px 14px',
-              borderRadius: '6px',
-              fontSize:     '13px',
+              background:     '#16a34a',
+              color:          'white',
+              padding:        '6px 14px',
+              borderRadius:   '6px',
+              fontSize:       '13px',
               textDecoration: 'none',
             }}
           >
